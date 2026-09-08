@@ -848,19 +848,19 @@ function drawPatHud() {
   ctx.fillStyle = '#2e7d32';
   ctx.strokeText(text, W - 28, 24);
   ctx.fillText(text, W - 28, 24);
-  drawSwapHint('scroll or middle click: whip');
+  drawSwapHint('scroll or middle click: whip', 62);
   ctx.restore();
 }
 
-function drawSwapHint(text) {
+function drawSwapHint(text, y) {
   ctx.font = '600 13px -apple-system, Segoe UI, sans-serif';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'top';
   ctx.lineWidth = 4;
   ctx.strokeStyle = 'rgba(255,255,255,0.9)';
   ctx.fillStyle = 'rgba(0,0,0,0.55)';
-  ctx.strokeText(text, W - 28, H - 40);
-  ctx.fillText(text, W - 28, H - 40);
+  ctx.strokeText(text, W - 28, y);
+  ctx.fillText(text, W - 28, y);
 }
 
 // ── Bottles & score ─────────────────────────────────────────────────────────
@@ -1052,7 +1052,7 @@ function drawHud() {
   ctx.lineWidth = 4;
   ctx.strokeText(sub, W - 28, 60);
   ctx.fillText(sub, W - 28, 60);
-  drawSwapHint('scroll or middle click: pat');
+  drawSwapHint('scroll or middle click: pat', 86);
   ctx.restore();
 }
 
