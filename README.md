@@ -54,15 +54,6 @@ Drag it onto the list and turn it on.
 If `openwhip` prints `Could not load Electron` on Node 26, electron's postinstall failed to unzip its binary.
 Reinstall on Node 22 or 24 (`nvm use 24 && npm install -g openwhip`).
 
-## Roadmap
-
-- [x] Initial release! 🥳
-- [x] Cease and desist letter from Anthropic
-- [ ] Logs of how many times you whipped claude so when the robots come we can order people nicely for them
-- [x] Updated whip physics
-- [x] Bottles, score, pat mode
-- [ ] Windows and Linux testing for the new modes
-
 ## Credits
 
 Fork of [GitFrog1111/OpenWhip](https://github.com/GitFrog1111/OpenWhip). The macOS fixes, physics, bottles and pat mode
