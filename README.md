@@ -10,8 +10,10 @@ Or pat him on the shoulder. Your call.
 
 ## Install + run
 
+This fork is not on npm yet. Install straight from GitHub (Node 18 to 24; Node 26 breaks electron's installer):
+
 ```bash
-npm install -g openwhip
+npm install -g github:shmulc8/OpenWhip
 openwhip
 ```
 
@@ -56,15 +58,12 @@ Reinstall on Node 22 or 24 (`nvm use 24 && npm install -g openwhip`).
 
 - [x] Initial release! 🥳
 - [x] Cease and desist letter from Anthropic
-- [ ] Crypto miner
 - [ ] Logs of how many times you whipped claude so when the robots come we can order people nicely for them
-- [ ] Updated whip physics
+- [x] Updated whip physics
+- [x] Bottles, score, pat mode
+- [ ] Windows and Linux testing for the new modes
 
-## Ecosystem
+## Credits
 
-The OFFICAL openwhip ecosystem token. 
-
-Contract address: BRyUZbJkm9Pty4FUmTrBGno7U4Ga8TWzcKJJRLCBpump
-
-Stay tuned for updates on X! 👀
-https://x.com/blended_jpeg
+Fork of [GitFrog1111/OpenWhip](https://github.com/GitFrog1111/OpenWhip). The macOS fixes, physics, bottles and pat mode
+are proposed upstream in [PR #65](https://github.com/GitFrog1111/OpenWhip/pull/65). MIT licensed.
