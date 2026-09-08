@@ -27,6 +27,7 @@ let readyAt = 0;
 const TOGGLE_SHORTCUT = 'Alt+Shift+W';
 const PAT_SHORTCUT = 'Alt+Shift+P';
 let pendingKind = 'whip';
+let lastKind = 'whip';
 
 const VK_CONTROL = 0x11;
 const VK_RETURN  = 0x0D;
@@ -167,8 +168,9 @@ function createOverlay(bounds) {
   });
 }
 
-function toggleOverlay(refocus = false, kind = 'whip') {
+function toggleOverlay(refocus = false, kind = lastKind) {
   pendingKind = kind;
+  lastKind = kind;
   if (overlay && overlay.isVisible()) {
     overlay.webContents.send('drop-whip');
     return;
@@ -195,6 +197,7 @@ ipcMain.on('whip-crack', () => {
   }
 });
 ipcMain.on('hide-overlay', () => { if (overlay) overlay.hide(); });
+ipcMain.on('mode-changed', (e, mode) => { lastKind = mode === 'pat' ? 'pat' : 'whip'; });
 ipcMain.on('hand-pat', () => {
   try {
     sendKindWords();
@@ -384,7 +387,7 @@ function sendMacroLinux(text) {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', (e, argv) => toggleOverlay(false, argv.includes('pat') ? 'pat' : 'whip'));
+  app.on('second-instance', (e, argv) => toggleOverlay(false, argv.includes('pat') ? 'pat' : argv.includes('whip') ? 'whip' : lastKind));
 }
 
 app.whenReady().then(async () => {
@@ -392,16 +395,16 @@ app.whenReady().then(async () => {
   readyAt = Date.now();
   const trayIcon = await getTrayIcon();
   tray = new Tray(process.platform === 'darwin' ? trayIcon.resize({ width: 18, height: 18 }) : trayIcon);
-  tray.setToolTip(`OpenWhip - click or ${TOGGLE_SHORTCUT} for whip`);
-  const trayMenu = Menu.buildFromTemplate([
+  tray.setToolTip(`OpenWhip - click or ${TOGGLE_SHORTCUT}; scroll on it to switch whip/pat`);
+  const modeMenu = [
     { label: `Whip (${TOGGLE_SHORTCUT})`, click: () => toggleOverlay(true, 'whip') },
     { label: `Pat on the shoulder (${PAT_SHORTCUT})`, click: () => toggleOverlay(true, 'pat') },
-    { type: 'separator' },
-    { label: 'Quit', click: () => app.quit() },
-  ]);
+  ];
+  const trayMenu = Menu.buildFromTemplate([...modeMenu, { type: 'separator' }, { label: 'Quit', click: () => app.quit() }]);
+  if (process.platform === 'darwin') app.dock.setMenu(Menu.buildFromTemplate(modeMenu));
   tray.on('right-click', () => tray.popUpContextMenu(trayMenu));
   tray.on('click', () => toggleOverlay(true));
-  if (!globalShortcut.register(TOGGLE_SHORTCUT, () => toggleOverlay())) {
+  if (!globalShortcut.register(TOGGLE_SHORTCUT, () => toggleOverlay(false, 'whip'))) {
     console.warn(`openwhip: could not register ${TOGGLE_SHORTCUT}`);
   }
   if (!globalShortcut.register(PAT_SHORTCUT, () => toggleOverlay(false, 'pat'))) {

@@ -28,13 +28,16 @@ sudo apt install xdotool
 - Flick, then click while the whip is snapping: that is a strike. It sends an interrupt (Ctrl-C) and one of the encouraging messages!
 - A click with a still whip does nothing. Fast flicks alone crack with sound and sparks but never type.
 - Right click: drop whip.
+- Scroll wheel or middle click: switch between whip and pat without leaving the screen.
 - Smash the bottles on the shelves for points. Fast hits in a row multiply the score; your best is kept.
 
 ## Pat on the shoulder
 
 For the days he deserves it. Press `Option+Shift+P` (`Alt+Shift+P`) or pick it from the tray menu: a hand follows
 your mouse. Left click pats him, sends a kind word (no interrupt, just the message and Enter) and floats some hearts.
-Right click waves goodbye. From a terminal, `openwhip pat` summons the hand and `openwhip` the whip.
+Right click waves goodbye. Scroll or middle click swaps back to the whip. From a terminal, `openwhip pat` summons the
+hand and `openwhip whip` the whip; plain `openwhip`, the Dock icon and the tray icon reopen whichever you used last.
+Right click the Dock icon for a Whip / Pat menu.
 
 ## macOS setup
 

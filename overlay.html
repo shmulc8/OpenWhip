@@ -129,7 +129,16 @@ const WHIP_CRACK_SOUNDS = ['sounds/A.mp3', 'sounds/B.mp3', 'sounds/C.mp3', 'soun
 
 document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 document.addEventListener('contextmenu', e => e.preventDefault());
+let lastSwapTime = 0;
+function swapMode() {
+  if (Date.now() - lastSwapTime < 800) return;
+  lastSwapTime = Date.now();
+  if (mode === 'pat') enterWhip(); else enterPat();
+  window.bridge.modeChanged(mode);
+}
+document.addEventListener('wheel', e => { if (Math.abs(e.deltaY) + Math.abs(e.deltaX) > 4) swapMode(); }, { passive: true });
 document.addEventListener('mousedown', e => {
+  if (e.button === 1) { swapMode(); return; }
   if (mode === 'pat') {
     if (!hand || hand.leaving) return;
     if (e.button === 2) { hand.leaving = true; hand.leaveT = Date.now(); return; }
@@ -839,7 +848,19 @@ function drawPatHud() {
   ctx.fillStyle = '#2e7d32';
   ctx.strokeText(text, W - 28, 24);
   ctx.fillText(text, W - 28, 24);
+  drawSwapHint('scroll or middle click: whip');
   ctx.restore();
+}
+
+function drawSwapHint(text) {
+  ctx.font = '600 13px -apple-system, Segoe UI, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.strokeText(text, W - 28, H - 40);
+  ctx.fillText(text, W - 28, H - 40);
 }
 
 // ── Bottles & score ─────────────────────────────────────────────────────────
@@ -1031,6 +1052,7 @@ function drawHud() {
   ctx.lineWidth = 4;
   ctx.strokeText(sub, W - 28, 60);
   ctx.fillText(sub, W - 28, 60);
+  drawSwapHint('scroll or middle click: pat');
   ctx.restore();
 }
 
@@ -1058,9 +1080,10 @@ requestAnimationFrame(loop);
 
 // ── IPC from main process ───────────────────────────────────────────────────
 let bottleW = 0, bottleH = 0;
-window.bridge.onSpawnWhip(() => {
+function enterWhip() {
   mode = 'whip';
   hand = null;
+  hearts = [];
   resize();
   handX = prevHandX = mouseX || W / 2;
   handY = prevHandY = mouseY || H / 2;
@@ -1077,17 +1100,9 @@ window.bridge.onSpawnWhip(() => {
   prevMouseY = mouseY;
   handleAngle = P.baseTargetAngle;
   handleAngVel = 0;
-});
+}
 
-window.bridge.onDropWhip(() => {
-  if (mode === 'pat') {
-    if (hand && !hand.leaving) { hand.leaving = true; hand.leaveT = Date.now(); }
-    return;
-  }
-  if (whip && !dropping) dropping = true;
-});
-
-window.bridge.onSpawnHand(() => {
+function enterPat() {
   resize();
   mode = 'pat';
   whip = null;
@@ -1095,6 +1110,17 @@ window.bridge.onSpawnHand(() => {
   bottles = [];
   shards = [];
   hand = { x: mouseX || W / 2, y: mouseY || H / 2, vx: 0, vy: 0, press: 0, bob: 0, leaving: false, leaveT: 0, t: Date.now() };
+}
+
+window.bridge.onSpawnWhip(enterWhip);
+window.bridge.onSpawnHand(enterPat);
+
+window.bridge.onDropWhip(() => {
+  if (mode === 'pat') {
+    if (hand && !hand.leaving) { hand.leaving = true; hand.leaveT = Date.now(); }
+    return;
+  }
+  if (whip && !dropping) dropping = true;
 });
 
 </script>
