@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld('bridge', {
   onCrackPhrase: (fn) => ipcRenderer.on('crack-phrase', (e, text, kind) => fn(text, kind)),
   onSpawnHand: (fn) => ipcRenderer.on('spawn-hand', () => fn()),
   handPat: () => ipcRenderer.send('hand-pat'),
+  modeChanged: (mode) => ipcRenderer.send('mode-changed', mode),
 });
