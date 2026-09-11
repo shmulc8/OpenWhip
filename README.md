@@ -6,7 +6,9 @@ Sometimes claude code is going too shlow, and you must whip him into shape..
 
 Or pat him on the shoulder. Your call.
 
-![WhipOrPet demo: whip cracks, bottles shatter, FASTER gets typed, then a hand pats and types kind words](assets/demo.gif)
+Works with Claude Code, Codex, and any coding agent - it just sends Ctrl-C and types.
+
+![WhipOrPet demo: on Claude Code and Codex - the whip cracks, FASTER gets typed, then a hand pats and types kind words](assets/demo.gif)
 
 ## Install + run
 
