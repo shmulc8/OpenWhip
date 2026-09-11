@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const APP_NAME = 'OpenWhip';
-const BUNDLE_ID = 'com.openwhip.app';
+const APP_NAME = 'WhipOrPet';
+const BUNDLE_ID = 'com.whiporpet.app';
 
 function run(cmd, args) {
   execFileSync(cmd, args, { stdio: ['ignore', 'ignore', 'inherit'] });

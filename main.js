@@ -20,7 +20,7 @@ if (process.platform === 'win32') {
 // ── Globals ─────────────────────────────────────────────────────────────────
 let tray, overlay;
 let overlayReady = false;
-let spawnQueued = false;
+let pendingAction = null; // 'spawn' | 'drop' | null: intent queued until the overlay finishes loading
 let refocusQueued = false;
 let readyAt = 0;
 
@@ -79,7 +79,7 @@ function createTrayIconFallback() {
       return img;
     }
   }
-  console.warn('openwhip: icon/Template.png missing or invalid');
+  console.warn('whiporpet: icon/Template.png missing or invalid');
   return nativeImage.createEmpty();
 }
 
@@ -113,7 +113,7 @@ async function getTrayIcon() {
       } catch (e) {
         console.warn('AppIcon.icns Quick Look thumbnail failed:', e?.message || e);
       }
-      const tmp = path.join(os.tmpdir(), 'openwhip-tray.icns');
+      const tmp = path.join(os.tmpdir(), 'whiporpet-tray.icns');
       try {
         fs.copyFileSync(file, tmp);
         const t = await tryIcnsTrayImage(tmp);
@@ -154,27 +154,49 @@ function createOverlay(bounds) {
   overlay.loadFile('overlay.html');
   overlay.webContents.on('did-finish-load', () => {
     overlayReady = true;
-    if (spawnQueued && overlay && overlay.isVisible()) {
-      spawnQueued = false;
+    if (!overlay) return;
+    if (pendingAction === 'spawn' && overlay.isVisible()) {
       overlay.webContents.send(pendingKind === 'pat' ? 'spawn-hand' : 'spawn-whip');
       if (refocusQueued) refocusPreviousApp();
-      refocusQueued = false;
+    } else if (pendingAction === 'drop') {
+      overlay.hide();
     }
+    pendingAction = null;
+    refocusQueued = false;
   });
   overlay.on('closed', () => {
     overlay = null;
     overlayReady = false;
-    spawnQueued = false;
+    pendingAction = null;
   });
 }
 
 function toggleOverlay(refocus = false, kind = lastKind) {
-  pendingKind = kind;
-  lastKind = kind;
   if (overlay && overlay.isVisible()) {
-    overlay.webContents.send('drop-whip');
+    if (!overlayReady) {
+      // Renderer still loading: record the latest intent for did-finish-load.
+      if (kind === lastKind) {
+        pendingAction = 'drop';
+      } else {
+        pendingAction = 'spawn';
+        pendingKind = kind;
+        lastKind = kind;
+        refocusQueued = refocus;
+      }
+      return;
+    }
+    if (kind === lastKind) {
+      overlay.webContents.send('drop-whip'); // same mode again = dismiss
+    } else {
+      overlay.webContents.send(kind === 'pat' ? 'spawn-hand' : 'spawn-whip'); // switch mode in place
+      pendingKind = kind;
+      lastKind = kind;
+      if (refocus) refocusPreviousApp();
+    }
     return;
   }
+  pendingKind = kind;
+  lastKind = kind;
   const bounds = cursorDisplayBounds();
   if (!overlay) createOverlay(bounds);
   else overlay.setBounds(bounds);
@@ -183,7 +205,7 @@ function toggleOverlay(refocus = false, kind = lastKind) {
     overlay.webContents.send(kind === 'pat' ? 'spawn-hand' : 'spawn-whip');
     if (refocus) refocusPreviousApp();
   } else {
-    spawnQueued = true;
+    pendingAction = 'spawn';
     refocusQueued = refocus;
   }
 }
@@ -240,13 +262,30 @@ function typeText(text) {
     const escaped = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     const script = ['tell application "System Events"', `  keystroke "${escaped}"`, '  delay 0.25', '  key code 36', '  delay 0.15', 'end tell'].join('\n');
     execFile('osascript', ['-e', script], err => {
-      if (err) console.warn('mac typing failed (enable Accessibility for OpenWhip):', err.message);
+      if (err) console.warn('mac typing failed (enable Accessibility for WhipOrPet):', err.message);
     });
   } else if (process.platform === 'linux') {
-    execFile('xdotool', ['type', '--delay', '1', '--clearmodifiers', '--', text, 'key', 'Return'], err => {
-      if (err) console.warn('linux typing failed. Install xdotool:', err.message);
-    });
+    runXdotoolChain([
+      ['type', '--clearmodifiers', '--delay', '1', '--', text],
+      ['key', '--clearmodifiers', 'Return'],
+    ], 'linux typing');
   }
+}
+
+// xdotool's `type` consumes the rest of its argv as literal text, so a trailing
+// `key Return` in the same call is typed, not pressed. Run each command separately.
+function runXdotoolChain(commands, label) {
+  const next = i => {
+    if (i >= commands.length) return;
+    execFile('xdotool', commands[i], err => {
+      if (err) {
+        console.warn(`${label} failed. Install xdotool:`, err.message);
+        return;
+      }
+      next(i + 1);
+    });
+  };
+  next(0);
 }
 
 function tapCharWindows(ch) {
@@ -368,19 +407,11 @@ function sendMacroMac(text) {
 }
 
 function sendMacroLinux(text) {
-  execFile(
-    'xdotool',
-    [
-      'key', '--clearmodifiers', 'ctrl+c',
-      'type', '--delay', '1', '--clearmodifiers', '--', text,
-      'key', 'Return',
-    ],
-    err => {
-      if (err) {
-        console.warn('linux macro failed. Install xdotool:', err.message);
-      }
-    }
-  );
+  runXdotoolChain([
+    ['key', '--clearmodifiers', 'ctrl+c'],
+    ['type', '--clearmodifiers', '--delay', '1', '--', text],
+    ['key', '--clearmodifiers', 'Return'],
+  ], 'linux macro');
 }
 
 // ── App lifecycle ───────────────────────────────────────────────────────────
@@ -395,7 +426,7 @@ app.whenReady().then(async () => {
   readyAt = Date.now();
   const trayIcon = await getTrayIcon();
   tray = new Tray(process.platform === 'darwin' ? trayIcon.resize({ width: 18, height: 18 }) : trayIcon);
-  tray.setToolTip(`OpenWhip - click or ${TOGGLE_SHORTCUT}; scroll on it to switch whip/pat`);
+  tray.setToolTip(`WhipOrPet - click or ${TOGGLE_SHORTCUT}; scroll on it to switch whip/pat`);
   const modeMenu = [
     { label: `Whip (${TOGGLE_SHORTCUT})`, click: () => toggleOverlay(true, 'whip') },
     { label: `Pat on the shoulder (${PAT_SHORTCUT})`, click: () => toggleOverlay(true, 'pat') },
@@ -405,11 +436,18 @@ app.whenReady().then(async () => {
   tray.on('right-click', () => tray.popUpContextMenu(trayMenu));
   tray.on('click', () => toggleOverlay(true));
   if (!globalShortcut.register(TOGGLE_SHORTCUT, () => toggleOverlay(false, 'whip'))) {
-    console.warn(`openwhip: could not register ${TOGGLE_SHORTCUT}`);
+    console.warn(`whiporpet: could not register ${TOGGLE_SHORTCUT}`);
   }
   if (!globalShortcut.register(PAT_SHORTCUT, () => toggleOverlay(false, 'pat'))) {
-    console.warn(`openwhip: could not register ${PAT_SHORTCUT}`);
+    console.warn(`whiporpet: could not register ${PAT_SHORTCUT}`);
   }
+
+  // Honor `whiporpet pat` / `whiporpet whip` on the very first (cold) launch too,
+  // not just on a second instance. Plain launch stays tray-only.
+  const initialKind = process.argv.includes('pat') ? 'pat'
+    : process.argv.includes('whip') ? 'whip'
+    : null;
+  if (initialKind) toggleOverlay(false, initialKind);
 });
 
 app.on('window-all-closed', e => e.preventDefault()); // keep alive in tray

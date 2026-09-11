@@ -463,7 +463,8 @@ function update() {
   }
 
   const tip = whip[whip.length - 1];
-  if (!dropping && peak > P.strikeSpeed * speedScale()) lastFastTime = Date.now();
+  const pastGrace = Date.now() - whipSpawnTime >= P.firstCrackGraceMs;
+  if (!dropping && pastGrace && peak > P.strikeSpeed * speedScale()) lastFastTime = Date.now();
   if (!dropping && peak > P.crackSpeed * speedScale()) {
     const now = Date.now();
     if (now - whipSpawnTime >= P.firstCrackGraceMs && now - lastCrackTime > P.crackCooldownMs) {
@@ -871,7 +872,7 @@ let score = 0;
 let best = 0;
 let combo = 0;
 let lastBreakTime = 0;
-try { best = Number(localStorage.getItem('openwhip.best')) || 0; } catch {}
+try { best = Number(localStorage.getItem('whiporpet.best')) || 0; } catch {}
 
 function shelfSpots() {
   const spots = [];
@@ -907,14 +908,26 @@ function scheduleRespawn() {
 
 function segmentHitsRect(ax, ay, bx, by, r) {
   const left = r.x - r.w / 2, right = r.x + r.w / 2, top = r.y - r.h, bottom = r.y;
-  const inside = (x, y) => x >= left && x <= right && y >= top && y <= bottom;
-  if (inside(ax, ay) || inside(bx, by)) return true;
-  const steps = 4;
-  for (let k = 1; k < steps; k++) {
-    const t = k / steps;
-    if (inside(lerp(ax, bx, t), lerp(ay, by, t))) return true;
+  // Liang–Barsky clip: true when any part of the segment overlaps the box, so a
+  // fast link cannot tunnel through a narrow bottle between sampled points.
+  const dx = bx - ax, dy = by - ay;
+  let t0 = 0, t1 = 1;
+  const edges = [[-dx, ax - left], [dx, right - ax], [-dy, ay - top], [dy, bottom - ay]];
+  for (const [p, q] of edges) {
+    if (p === 0) {
+      if (q < 0) return false; // parallel to this edge and outside the slab
+      continue;
+    }
+    const t = q / p;
+    if (p < 0) {
+      if (t > t1) return false;
+      if (t > t0) t0 = t;
+    } else {
+      if (t < t0) return false;
+      if (t < t1) t1 = t;
+    }
   }
-  return false;
+  return true;
 }
 
 function shatter(b, vx, vy) {
@@ -939,7 +952,7 @@ function shatter(b, vx, vy) {
   score += 10 * combo;
   if (score > best) {
     best = score;
-    try { localStorage.setItem('openwhip.best', String(best)); } catch {}
+    try { localStorage.setItem('whiporpet.best', String(best)); } catch {}
   }
   playCrackSound();
 }
@@ -1100,6 +1113,7 @@ function enterWhip() {
   prevMouseY = mouseY;
   handleAngle = P.baseTargetAngle;
   handleAngVel = 0;
+  facing = 1;
 }
 
 function enterPat() {

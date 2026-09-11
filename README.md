@@ -1,4 +1,4 @@
-# OpenWhip
+# WhipOrPet
 
 ![Whip divider](assets/divider.png)
 
@@ -6,15 +6,15 @@ Sometimes claude code is going too shlow, and you must whip him into shape..
 
 Or pat him on the shoulder. Your call.
 
-![OpenWhip demo: whip cracks, bottles shatter, FASTER gets typed, then a hand pats and types kind words](assets/demo.gif)
+![WhipOrPet demo: whip cracks, bottles shatter, FASTER gets typed, then a hand pats and types kind words](assets/demo.gif)
 
 ## Install + run
 
 This fork is not on npm yet. Install straight from GitHub (Node 18 to 24; Node 26 breaks electron's installer):
 
 ```bash
-npm install -g github:shmulc8/OpenWhip
-openwhip
+npm install -g github:shmulc8/WhipOrPet
+whiporpet
 ```
 
 windows and mac supported out of the box, but Linux is a special snowflake so you need to install `xdotool` for keyboard automation
@@ -37,25 +37,25 @@ sudo apt install xdotool
 
 For the days he deserves it. Press `Option+Shift+P` (`Alt+Shift+P`) or pick it from the tray menu: a hand follows
 your mouse. Left click pats him, sends a kind word (no interrupt, just the message and Enter) and floats some hearts.
-Right click waves goodbye. Scroll or middle click swaps back to the whip. From a terminal, `openwhip pat` summons the
-hand and `openwhip whip` the whip; plain `openwhip`, the Dock icon and the tray icon reopen whichever you used last.
+Right click waves goodbye. Scroll or middle click swaps back to the whip. From a terminal, `whiporpet pat` summons the
+hand and `whiporpet whip` the whip; plain `whiporpet`, the Dock icon and the tray icon reopen whichever you used last.
 Right click the Dock icon for a Whip / Pat menu.
 
 ## macOS setup
 
-On first run `openwhip` builds `OpenWhip.app` inside the package (a renamed, re-signed copy of the bundled
-Electron with the whip icon) and launches it through `open`, so macOS sees an app called OpenWhip rather
+On first run `whiporpet` builds `WhipOrPet.app` inside the package (a renamed, re-signed copy of the bundled
+Electron with the whip icon) and launches it through `open`, so macOS sees an app called WhipOrPet rather
 than your terminal. Typing into the focused app needs Accessibility access for it: when macOS prompts,
-open System Settings > Privacy & Security > Accessibility and turn on **OpenWhip**. If it is not listed:
+open System Settings > Privacy & Security > Accessibility and turn on **WhipOrPet**. If it is not listed:
 
 ```bash
-open -R "$(npm root -g)/openwhip/OpenWhip.app"
+open -R "$(npm root -g)/whip-or-pet/WhipOrPet.app"
 ```
 
 Drag it onto the list and turn it on.
 
-If `openwhip` prints `Could not load Electron` on Node 26, electron's postinstall failed to unzip its binary.
-Reinstall on Node 22 or 24 (`nvm use 24 && npm install -g openwhip`).
+If `whiporpet` prints `Could not load Electron` on Node 26, electron's postinstall failed to unzip its binary.
+Reinstall on Node 22 or 24 (`nvm use 24 && npm install -g whip-or-pet`).
 
 ## Credits
 

@@ -1,12 +1,12 @@
 {
-  "name": "openwhip",
-  "version": "1.2.0",
+  "name": "whip-or-pet",
+  "version": "1.3.0",
   "description": "Whip Claude into shape, or pat it on the shoulder",
   "license": "MIT",
   "main": "main.js",
   "bin": {
-    "openwhip": "bin/openwhip.js",
-    "badclaude": "bin/openwhip.js"
+    "whiporpet": "bin/whiporpet.js",
+    "openwhip": "bin/openwhip.js"
   },
   "os": [
     "darwin",
@@ -24,24 +24,25 @@
     "claude",
     "claude-code",
     "whip",
+    "pat",
     "fun"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shmulc8/OpenWhip.git"
+    "url": "git+https://github.com/shmulc8/WhipOrPet.git"
   },
   "bugs": {
-    "url": "https://github.com/shmulc8/OpenWhip/issues"
+    "url": "https://github.com/shmulc8/WhipOrPet/issues"
   },
-  "homepage": "https://github.com/shmulc8/OpenWhip#readme",
+  "homepage": "https://github.com/shmulc8/WhipOrPet#readme",
   "files": [
     "main.js",
     "preload.js",
     "overlay.html",
     "sounds",
     "icon",
+    "bin/whiporpet.js",
     "bin/openwhip.js",
-    "bin/badclaude.js",
     "scripts/mac-app.js",
     "README.md",
     "LICENSE"
